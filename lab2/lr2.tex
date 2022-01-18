@@ -1,0 +1,147 @@
+\documentclass{article}
+
+\title{\textbf{Second laboratory work}}
+\author{Kondratev Egor 206}
+
+\usepackage{sagetex}
+\setlength{\sagetexindent}{10ex}
+
+\usepackage{geometry}
+\geometry{a4paper, total={170mm,257mm}, left=20mm, right=20mm, top=20mm, bottom=20mm}
+
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\definecolor{myred1}{RGB}{107, 14, 14}
+\definecolor{mygreen1}{RGB}{0, 102, 0}
+
+\begin{document}
+
+\maketitle
+\titleformat{\section}[block]{\color{red}\Large\bfseries\filcenter}{}{1em}{}
+
+\section*{Task 3 variant 1}
+
+\textbf{Create some constants which will be useful in future for plot 3d graphics.}
+\begin{sageblock}
+xmin, xmax = -10, 10
+ymin, ymax = -10, 10
+zmin, zmax = -10, 10
+\end{sageblock}
+\textbf{Say for sage that \textcolor{mygreen1}{x},  \textcolor{mygreen1}{y}, \textcolor{mygreen1}{z} is variables, and create function \textcolor{myred1}{f}.}
+\begin{sageblock}
+var("x y z")
+f(x, y, z) = 7*x^2 + 3*y^2 + 3*z^2 +  8*x*y + 8*x*z + 6*y*z + 6*x + y + 7
+\end{sageblock}
+\textbf{Display the function formula.}
+
+\textcolor{myred1}{$\sage{f(x, y, z)}$}\\
+\textbf{Plot graphic of unchanged figure.} 
+\begin{sageblock}
+p = implicit_plot3d(f(x=x, y=y, z=z), (x, xmin, xmax), (y, ymin, ymax), (z, zmin, zmax))
+\end{sageblock}
+
+\begin{center}
+\sageplot{p}
+\end{center}
+\textbf{Function that, according to a given algorithm, converts the function passed as an argument to the canonical form.
+Return tuple (\textcolor{mygreen1}{lambdas}, \textcolor{mygreen1}{a}, \textcolor{mygreen1}{a0}).}
+\begin{sageblock}
+def kanonic_coeffs(fun):
+    try:
+        var("l l1 l2 l3")
+        lvcts = []
+        svcts = []
+        tmp_fun = fun
+        a = vector(RR, 3)
+        tmp_vct = vector(RR, 9)
+        var_combs_tmp = (x^2, y^2, z^2, x*y, x*z, y*z)
+        var_combs_0 = (x^2, x*y, x*z, x*y, y^2, y*z, x*z, y*z, z^2)
+        var_combs_1 = (x, y, z)
+        for i, var_comb in enumerate(var_combs_0):
+            if i == 0 or i == 4 or i == 8:
+                tmp_vct[i] = fun.coefficient(var_comb)
+            else:
+                tmp_vct[i] = fun.coefficient(var_comb) / 2
+        for var_comb in var_combs_tmp:
+            tmp_fun -= fun.coefficient(var_comb)*var_comb
+        for i, var_comb in enumerate(var_combs_1):
+            a[i] = tmp_fun.coefficient(var_comb) / 2
+            tmp_fun -= tmp_fun.coefficient(var_comb)*var_comb
+        a0 = tmp_fun.n()    
+        A = matrix(SR, 3, tmp_vct)
+        L = matrix(SR, 3, 3, var('l'))
+        E = matrix(SR, 3, 3, 1)
+        lvct = vector([l1, l2, l3])
+        lambdas = solve([(A-L).determinant() == 0], l)
+        for i, el in enumerate(lambdas):
+            nums = []
+            lhs = (A-el.rhs()*E)*lvct
+            res = solve([lhs[0] == 0, lhs[1] == 0, lhs[2] == 0], l1, l2, l3)[0]
+            for i in range(len(res)):
+                if len(res[i].rhs().variables()) == 0:
+                    nums.append(res[i].rhs())
+                else:
+                    nums.append(res[i].rhs()(1))
+            lvcts.append(vector(nums))
+        for el in lvcts:
+            norm_lvct = (el / sqrt((el*el).n())).n()
+            svcts.append(norm_lvct)
+        ST = matrix(RR, 3)
+        for i in range(len(svcts)):
+            ST[i] = svcts[i]
+        a_ = ST*a
+        for i in range(len(lambdas)):
+            lambdas[i] = lambdas[i].rhs().n()
+        return (lambdas, a_, a0)
+    except:
+        print("Something gone wrong\n")
+        return (None, None, None)
+\end{sageblock}
+\textbf{Obtain from the function a tuple of the required coefficients.}
+\begin{sageblock}
+(lambdas, a, a0) = kanonic_coeffs(f)
+\end{sageblock} 
+\textbf{Display the obtained coefficients.}
+\begin{sageblock}
+print("Lambdas:", tuple(lambdas))
+print("a:", a)
+print("a0:", a0)
+\end{sageblock} 
+
+\textbf{\textcolor{mygreen1}{Lambdas:}} $\sage{tuple(lambdas)}$
+
+\textbf{\textcolor{mygreen1}{a:}} $\sage{a}$
+
+\textbf{\textcolor{mygreen1}{a0:}} $\sage{a0}$\\
+\textbf{Create a function with obtained coefficients.}
+\begin{sageblock}
+var("kx ky kz")
+first_part = lambdas[0]*kx^2 + lambdas[1]*ky^2 + lambdas[2]*kz^2
+second_part = 2*a[0]*kx + 2*a[1]*ky + 2*a[2]*kz + a0
+kanonic_func(kx, ky, kz) = first_part + second_part
+\end{sageblock}
+\textbf{Display the obtained function formula.}
+
+\textcolor{myred1}{$\sage{kanonic_func(kx, ky, kz)}$}\\
+\textbf{Plot graphic of changed figure.} 
+\begin{sageblock}
+p = implicit_plot3d(kanonic_func(kx=kx, ky=ky, kz=kz), (kx, xmin, xmax),\
+(ky, ymin, ymax), (kz, zmin, zmax))
+\end{sageblock}
+\begin{center}
+\sageplot{p}
+\end{center}
+
+\section*{Initial function.}
+\begin{center}
+\textcolor{myred1}{$7*x^2 + 3*y^2 + 3*z^2 +  8*x*y + 8*x*z + 6*y*z + 6*x + y + 7$}
+\end{center}
+
+\section*{Canonical function.}
+
+\begin{center}
+\textcolor{myred1}{$\sage{lambdas[0]}*kx^2+\sage{lambdas[1]}*ky^2 \sage{a[2]}*kz$}
+\end{center}
+
+\end{document}
