@@ -1,0 +1,20 @@
+\section{Пример 3D графика}
+\begin{sagesilent}
+	# var("x y z")
+	u(x, y, z) = x^2 + y^2 - z^2 - 1
+\end{sagesilent}
+График функции $\sage{u} = 0$
+\begin{center}
+  \sageplot[trim=100 100 100 100, clip, width=3in][png]{implicit_plot3d(u, (x, -10, 10), (y, -10, 10), (z, -10, 10), color="orange")}
+\end{center}
+
+\noindent Или:\\
+\begin{sagesilent}
+	# var("x y z")
+	u(x, y, z) = x^2 + y^2 - z^2 - 1
+	plot_before_simplifying = implicit_plot3d(u(x,y,z),(-10,10),(-10,10),(-10,10))
+\end{sagesilent}
+График функции $\sage{u} = 0$
+\begin{center}
+	\sageplot[clip, width=8cm]{plot_before_simplifying}
+\end{center}
